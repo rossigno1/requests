@@ -132,6 +132,50 @@ func Get(uri string, params map[string]string,headers map[string]string,cookie [
 	resp, err = client.Do(req)
 	return 
 }
+/**************** Head METHOD ******************/
+func Head(uri string, params map[string]string,headers map[string]string,cookie []*http.Cookie, verify bool)(resp *http.Response,err error){
+	var (
+		u string
+	)
+	if len(params)> 0 {
+		p := url.Values{}
+		for k,v := range params {
+			p.Add(k,v)
+		}
+		if strings.Contains(uri,"?") {
+			u = fmt.Sprintf("%s&%s",uri,p.Encode())
+		}else{
+			u = fmt.Sprintf("%s?%s",uri,p.Encode())
+		}
+	}else{
+		u = uri
+	}
+	req, err := http.NewRequest("HEAD", u,nil)
+	if err != nil { log.Println(err) ;return nil,err}
+
+    //Add header
+	for k,v := range headers {
+		req.Header.Set(k,v)
+	}
+	//Add cookie
+	if cookie != nil {
+		for _,c := range cookie {
+			req.AddCookie(c)
+		}
+	}
+    client := &http.Client{
+		Timeout: MAXTIMEOUT * time.Second,
+	}
+	if verify == false {
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client.Transport = tr
+	}
+
+	resp, err = client.Do(req)
+	return 
+}
 
 func PatchJson(uri string, param map[string]string, jsonPost []byte, headers map[string]string)(*http.Response,error){
 
